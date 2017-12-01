@@ -172,17 +172,34 @@ func GetCurrentContainerID() string {
 	regex := "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
 	re := regexp.MustCompilePOSIX(regex)
 
-	for scanner.Scan() {
-		_, lines, err := bufio.ScanLines([]byte(scanner.Text()), true)
-		if err == nil {
-			if re.MatchString(string(lines)) {
-				submatches := re.FindStringSubmatch(string(lines))
-				containerID := submatches[1]
+//	for scanner.Scan() {
+//		_, lines, err := bufio.ScanLines([]byte(scanner.Text()), true)
+//		if err == nil {
+//			if re.MatchString(string(lines)) {
+//				submatches := re.FindStringSubmatch(string(lines))
+//				containerID := submatches[1]
 
-				return containerID
-			}
-		}
-	}
+//				return containerID
+//			}
+//		}
+//	}
 
-	return ""
+  var dockerRegex = "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
+  var ecsRegex = "/ecs/[^/]{1,}/([[:alnum:]]{64})(\\.scope)?$"
+  var dockerRe = regexp.MustCompilePOSIX(dockerRegex)
+  var ecsRe = regexp.MustCompilePOSIX(ecsRegex)
+
+  if dockerRe.MatchString(line) {
+    var submatches = dockerRe.FindStringSubmatch(line)
+    var containerID = submatches[1]
+    fmt.Printf("Docker %s", containerID)
+  } else if ecsRe.MatchString(line) {
+    var submatches = ecsRe.FindStringSubmatch(line)
+    var containerID = submatches[1]
+    fmt.Printf("ECS %s", containerID)
+   } else {
+     fmt.Print("We didn't get anything")
+  }
+
+  return containerID
 }
