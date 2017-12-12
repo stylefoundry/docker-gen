@@ -165,41 +165,31 @@ func GetCurrentContainerID() string {
 		return ""
 	}
 
+  var containerID = ""
 	reader := bufio.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
 
-	regex := "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
-	re := regexp.MustCompilePOSIX(regex)
+//	regex := "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
+//	re := regexp.MustCompilePOSIX(regex)
+var dockerRegex = "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
+var ecsRegex = "/ecs/[^/]{1,}/([[:alnum:]]{64})(\\.scope)?$"
+var dockerRe = regexp.MustCompilePOSIX(dockerRegex)
+var ecsRe = regexp.MustCompilePOSIX(ecsRegex)
 
-//	for scanner.Scan() {
-//		_, lines, err := bufio.ScanLines([]byte(scanner.Text()), true)
-//		if err == nil {
-//			if re.MatchString(string(lines)) {
-//				submatches := re.FindStringSubmatch(string(lines))
-//				containerID := submatches[1]
-
-//				return containerID
-//			}
-//		}
-//	}
-
-  var dockerRegex = "/docker[/-]([[:alnum:]]{64})(\\.scope)?$"
-  var ecsRegex = "/ecs/[^/]{1,}/([[:alnum:]]{64})(\\.scope)?$"
-  var dockerRe = regexp.MustCompilePOSIX(dockerRegex)
-  var ecsRe = regexp.MustCompilePOSIX(ecsRegex)
-
-  if dockerRe.MatchString(line) {
-    var submatches = dockerRe.FindStringSubmatch(line)
-    var containerID = submatches[1]
-    fmt.Printf("Docker %s", containerID)
-  } else if ecsRe.MatchString(line) {
-    var submatches = ecsRe.FindStringSubmatch(line)
-    var containerID = submatches[1]
-    fmt.Printf("ECS %s", containerID)
-   } else {
-     fmt.Print("We didn't get anything")
-  }
+	for scanner.Scan() {
+		_, lines, err := bufio.ScanLines([]byte(scanner.Text()), true)
+		if err == nil {
+      var line = string(lines)
+      if dockerRe.MatchString(line) {
+        var submatches = dockerRe.FindStringSubmatch(line)
+        containerID = submatches[1]
+      } else if ecsRe.MatchString(line) {
+        var submatches = ecsRe.FindStringSubmatch(line)
+        containerID = submatches[1]
+      }
+		}
+	}
 
   return containerID
 }
